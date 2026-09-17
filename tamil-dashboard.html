@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+  <script>
+(function(){
+
+    const email =
+        (localStorage.getItem("student_email") || "")
+        .trim()
+        .toLowerCase();
+
+    if(!email){
+        window.location.replace("login.html");
+        return;
+    }
+
+    document.documentElement.style.visibility = "hidden";
+
+    const SUPABASE_URL =
+        "https://ozsnvtbregzknawdyncg.supabase.co";
+
+    const SUPABASE_KEY =
+        "sb_publishable_psAoSdnCvmGBUt38h9ihxQ_evtiqbBi";
+
+    async function checkAccess(){
+
+        try{
+
+            const response = await fetch(
+                SUPABASE_URL +
+                "/rest/v1/payments" +
+                "?select=id,email,status" +
+                "&email=eq." +
+                encodeURIComponent(email),
+                {
+                    headers:{
+                        "apikey":SUPABASE_KEY,
+                        "Authorization":"Bearer " + SUPABASE_KEY
+                    }
+                }
+            );
+
+            const records = await response.json();
+
+            const approved =
+                records.some(function(record){
+
+                    return String(record.status)
+                        .trim()
+                        .toLowerCase() === "approved";
+
+                });
+
+            if(approved){
+
+                document.documentElement.style.visibility =
+                    "visible";
+
+            }else{
+
+                window.location.replace("payment.html");
+
+            }
+
+        }catch(error){
+
+            console.error(error);
+
+            window.location.replace("login.html");
+
+        }
+
+    }
+
+    checkAccess();
+
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>தமிழ் — தமிழ் படிப்பு</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700;800&display=swap');
+
+:root{
+  --bg:#f7f0d7;
+  --paper:#fffdf5;
+  --paper2:#fff8df;
+  --ink:#302719;
+  --muted:#776b56;
+  --yellow:#e6bd45;
+  --yellow2:#f4d46b;
+  --line:#4b3b25;
+  --shadow:rgba(73,55,22,.16);
+  --accent:#c79519;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  min-height:100vh;
+  font-family:"Noto Sans Tamil","Nirmala UI","Latha",sans-serif;
+  background:
+    radial-gradient(circle at 15% 20%,rgba(255,255,255,.8),transparent 25%),
+    radial-gradient(circle at 85% 80%,rgba(230,189,69,.12),transparent 25%),
+    var(--bg);
+  color:var(--ink);
+  transition:.35s ease;
+}
+button{font:inherit}
+button,a{ -webkit-tap-highlight-color:transparent }
+
+body.dark{
+  --bg:#080806;
+  --paper:#11110d;
+  --paper2:#17150e;
+  --ink:#fff3ad;
+  --muted:#d4c879;
+  --yellow:#ffd83d;
+  --yellow2:#fff078;
+  --line:#ffe05a;
+  --shadow:rgba(255,216,61,.16);
+  --accent:#ffd83d;
+  background:
+    radial-gradient(circle at 20% 15%,rgba(255,216,61,.08),transparent 27%),
+    radial-gradient(circle at 80% 75%,rgba(255,216,61,.06),transparent 28%),
+    #080806;
+}
+
+/* PAGE / NOTEBOOK FRAME */
+.page{
+  width:min(1450px,94vw);
+  min-height:calc(100vh - 44px);
+  margin:22px auto;
+  padding:38px;
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(rgba(255,255,255,.38),rgba(255,255,255,.38)),
+    repeating-linear-gradient(0deg,transparent 0 31px,rgba(84,67,35,.055) 32px);
+  background-color:var(--paper);
+  border:6px solid var(--line);
+  border-radius:34px;
+  box-shadow:0 18px 50px var(--shadow), inset 0 0 0 2px rgba(255,255,255,.35);
+  transition:.35s ease;
+}
+body.dark .page{
+  background:
+    repeating-linear-gradient(0deg,transparent 0 31px,rgba(255,216,61,.035) 32px),
+    var(--paper);
+  box-shadow:0 0 28px rgba(255,216,61,.11), inset 0 0 0 2px rgba(255,216,61,.08);
+}
+.page:before,.page:after{
+  content:"";
+  position:absolute;
+  pointer-events:none;
+  border:2px dashed var(--line);
+  opacity:.18;
+  border-radius:50%;
+}
+.page:before{width:170px;height:90px;left:-55px;top:80px;transform:rotate(-12deg)}
+.page:after{width:140px;height:70px;right:-45px;bottom:80px;transform:rotate(13deg)}
+
+.view{display:none;animation:pageIn .45s ease}
+.view.active{display:block}
+@keyframes pageIn{
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* DASHBOARD */
+.dashboard-head{
+  min-height:120px;
+  display:flex;
+  justify-content:flex-end;
+  align-items:flex-start;
+  position:relative;
+  z-index:2;
+}
+.main-title{
+  font-size:clamp(3.6rem,8vw,7.2rem);
+  line-height:1;
+  font-weight:800;
+  letter-spacing:4px;
+  color:var(--ink);
+  text-shadow:3px 3px 0 var(--yellow2);
+}
+.book-icon{
+  font-size:2.5rem;
+  margin-top:10px;
+  margin-right:16px;
+  filter:drop-shadow(2px 3px 0 var(--yellow2));
+}
+
+.dashboard-stage{
+  width:min(1050px,92%);
+  min-height:510px;
+  margin:10px auto 65px;
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  grid-template-rows:repeat(6,78px);
+  gap:18px;
+  z-index:2;
+}
+.unit-card{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:18px 20px;
+  min-height:115px;
+  color:var(--ink);
+  background:var(--paper2);
+  border:4px solid var(--line);
+  border-radius:28px;
+  box-shadow:6px 7px 0 var(--yellow2), 0 10px 20px var(--shadow);
+  cursor:pointer;
+  font-size:clamp(1rem,1.8vw,1.35rem);
+  font-weight:800;
+  transition:.25s ease;
+}
+.unit-card:before{
+  content:"";
+  position:absolute;
+  inset:7px;
+  border:1.5px dashed var(--line);
+  border-radius:20px;
+  opacity:.25;
+  pointer-events:none;
+}
+.unit-card:hover{
+  transform:translateY(-8px) rotate(-.4deg);
+  box-shadow:9px 12px 0 var(--yellow2),0 18px 28px var(--shadow);
+}
+.unit-card:active{transform:translateY(-2px) scale(.98)}
+.unit-card:nth-child(1){grid-column:2 / span 4;grid-row:1 / span 2}
+.unit-card:nth-child(2){grid-column:7 / span 4;grid-row:1 / span 2;transform:translateY(14px)}
+.unit-card:nth-child(3){grid-column:1 / span 4;grid-row:4 / span 2;transform:translateY(-2px)}
+.unit-card:nth-child(4){grid-column:5 / span 4;grid-row:3 / span 2;transform:translateY(8px)}
+.unit-card:nth-child(5){grid-column:9 / span 4;grid-row:4 / span 2;transform:translateY(-12px)}
+.unit-card:nth-child(2):hover,.unit-card:nth-child(3):hover,.unit-card:nth-child(4):hover,.unit-card:nth-child(5):hover{transform:translateY(-8px)}
+
+.credit{
+  position:absolute;
+  left:42px;
+  bottom:34px;
+  font-family:Arial,sans-serif;
+  font-size:.76rem;
+  font-weight:700;
+  color:var(--muted);
+  letter-spacing:.2px;
+}
+.dark-btn{
+  position:absolute;
+  right:42px;
+  bottom:28px;
+  z-index:5;
+  border:3px solid var(--line);
+  background:var(--ink);
+  color:var(--paper);
+  border-radius:18px;
+  padding:8px 16px;
+  cursor:pointer;
+  font-family:Arial,sans-serif;
+  font-size:.78rem;
+  font-weight:800;
+  letter-spacing:1px;
+  box-shadow:4px 4px 0 var(--yellow);
+  transition:.2s;
+}
+.dark-btn:hover{transform:translateY(-3px)}
+body.dark .dark-btn{background:var(--yellow);color:#0b0b08;box-shadow:0 0 18px rgba(255,216,61,.5)}
+
+/* IYAL PAGE */
+.sub-head{
+  min-height:95px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  position:relative;
+  z-index:2;
+}
+.sub-title{
+  font-size:clamp(2rem,4vw,4rem);
+  font-weight:800;
+  color:var(--ink);
+  line-height:1.15;
+}
+.back-btn{
+  border:3px solid var(--line);
+  background:var(--paper2);
+  color:var(--ink);
+  padding:9px 17px;
+  border-radius:15px;
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:4px 4px 0 var(--yellow2);
+  transition:.2s;
+}
+.back-btn:hover{transform:translateY(-3px)}
+
+.poem-grid{
+  width:min(1100px,94%);
+  margin:35px auto 20px;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:28px;
+  position:relative;
+  z-index:2;
+}
+.poem-card{
+  min-height:230px;
+  padding:25px;
+  border:4px solid var(--line);
+  border-radius:30px;
+  background:var(--paper2);
+  box-shadow:7px 8px 0 var(--yellow2),0 12px 22px var(--shadow);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:space-between;
+  text-align:center;
+  transition:.25s ease;
+}
+.poem-card:hover{transform:translateY(-7px) rotate(.25deg)}
+.poem-name{
+  font-size:clamp(1.05rem,2vw,1.45rem);
+  font-weight:800;
+  line-height:1.5;
+}
+.author{
+  color:var(--muted);
+  font-size:1rem;
+  font-weight:600;
+  margin:8px 0;
+}
+.open-poem{
+  border:3px solid var(--line);
+  border-radius:16px;
+  padding:9px 16px;
+  background:var(--yellow2);
+  color:var(--ink);
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:3px 4px 0 var(--line);
+  transition:.18s;
+}
+.open-poem:hover{transform:translateY(-2px)}
+.open-poem:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--line)}
+
+/* NOTES */
+.notes-head{
+  display:flex;
+  gap:18px;
+  align-items:flex-start;
+  justify-content:space-between;
+  position:relative;
+  z-index:2;
+}
+.notes-title{
+  font-size:clamp(1.8rem,4vw,3.4rem);
+  font-weight:800;
+  line-height:1.25;
+}
+.notes-wrap{
+  width:min(1050px,95%);
+  margin:30px auto 10px;
+  position:relative;
+  z-index:2;
+}
+.note-section{
+  margin:22px 0;
+  padding:24px 26px;
+  border:3px solid var(--line);
+  border-radius:24px;
+  background:var(--paper2);
+  box-shadow:5px 6px 0 var(--yellow2);
+}
+.note-section h2{
+  font-size:1.35rem;
+  margin-bottom:16px;
+  border-bottom:2px dashed var(--line);
+  padding-bottom:9px;
+}
+.note-section h3{
+  font-size:1.08rem;
+  margin:17px 0 7px;
+}
+.note-section p,.note-section li{
+  font-size:1rem;
+  line-height:2;
+}
+.note-section ul{padding-left:24px}
+.poem-text{
+  white-space:pre-line;
+  line-height:2.15!important;
+  font-size:1.03rem!important;
+  background:rgba(255,255,255,.32);
+  border-left:5px solid var(--yellow);
+  padding:18px 20px;
+  border-radius:12px;
+}
+body.dark .poem-text{background:rgba(255,216,61,.035)}
+.part{
+  margin-top:18px;
+  padding:17px 19px;
+  border-left:5px solid var(--yellow);
+  background:rgba(230,189,69,.09);
+  border-radius:14px;
+}
+.part h3{margin-top:0;color:var(--ink)}
+.note-label{
+  display:inline-block;
+  background:var(--yellow);
+  color:#332500;
+  padding:4px 10px;
+  border-radius:10px;
+  font-size:.82rem;
+  font-weight:800;
+  margin-bottom:8px;
+}
+body.dark .note-label{color:#151100}
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:28px;
+  transform:translate(-50%,20px);
+  opacity:0;
+  pointer-events:none;
+  z-index:100;
+  background:var(--ink);
+  color:var(--paper);
+  border:2px solid var(--yellow);
+  border-radius:14px;
+  padding:11px 18px;
+  box-shadow:0 8px 25px var(--shadow);
+  transition:.25s;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media(max-width:800px){
+  .page{width:96vw;min-height:calc(100vh - 20px);margin:10px auto;padding:22px;border-width:4px;border-radius:25px}
+  .dashboard-head{min-height:90px}
+  .main-title{font-size:4rem}
+  .book-icon{font-size:2rem;margin-right:3px}
+  .dashboard-stage{
+    width:100%;
+    min-height:0;
+    margin:12px auto 75px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:auto;
+    gap:20px;
+  }
+  .unit-card,.unit-card:nth-child(n){
+    grid-column:auto;grid-row:auto;
+    min-height:145px;
+    transform:none;
+  }
+  .unit-card:nth-child(5){grid-column:1 / -1}
+  .unit-card:hover{transform:translateY(-5px)}
+  .credit{left:24px;bottom:28px;font-size:.68rem}
+  .dark-btn{right:24px;bottom:21px}
+  .poem-grid{grid-template-columns:1fr;width:100%;gap:20px}
+  .poem-card{min-height:210px}
+  .sub-head{min-height:100px;gap:12px}
+  .sub-title{font-size:2rem}
+  .back-btn{font-size:.82rem;padding:8px 11px}
+  .notes-head{gap:10px}
+  .notes-title{font-size:1.8rem}
+  .note-section{padding:18px 17px}
+}
+@media(max-width:480px){
+  .page{padding:16px}
+  .main-title{font-size:3.1rem}
+  .book-icon{font-size:1.55rem}
+  .dashboard-stage{grid-template-columns:1fr}
+  .unit-card:nth-child(5){grid-column:auto}
+  .unit-card{min-height:125px}
+  .credit{position:static;margin-top:22px;font-size:.66rem}
+  .dark-btn{bottom:20px}
+  .dashboard-stage{margin-bottom:60px}
+  .sub-head{align-items:flex-start}
+  .sub-title{font-size:1.55rem}
+  .back-btn{white-space:nowrap}
+  .note-section p,.note-section li,.poem-text{font-size:.94rem!important;line-height:1.9!important}
+}
+</style>
+</head>
+<body>
+
+<!-- DASHBOARD -->
+<section id="dashboard" class="page view active">
+  <div class="dashboard-head">
+    <h1 class="main-title">தமிழ்</h1>
+  </div>
+
+  <div class="dashboard-stage">
+    <button class="unit-card" onclick="openView('iyal1')">இயல் 1 - செய்யுள்</button>
+    <button class="unit-card" onclick="comingSoon('இயல் 2 - இலக்கணம்')">இயல் 2 - இலக்கணம்</button>
+    <button class="unit-card" onclick="comingSoon('இயல் 3 - இலக்கிய வரலாறு')">இயல் 3 - இலக்கிய வரலாறு</button>
+    <button class="unit-card" onclick="comingSoon('இயல் 4 - இக்கால இலக்கியம்')">இயல் 4 - இக்கால இலக்கியம்</button>
+    <button class="unit-card" onclick="comingSoon('இயல் 5 - மொழித்திறன்')">இயல் 5 - மொழித்திறன்</button>
+  </div>
+
+  <div class="credit">By Madhumathi | B.Sc DS and AI</div>
+  <button class="dark-btn" id="themeBtn" onclick="toggleTheme()">DARK</button>
+</section>
+
+<!-- IYAL 1 -->
+<section id="iyal1" class="page view">
+  <div class="sub-head">
+    <button class="back-btn" onclick="openView('dashboard')">← முகப்பு</button>
+    <h1 class="sub-title">இயல் 1 - செய்யுள்</h1>
+  </div>
+
+  <div class="poem-grid">
+    <article class="poem-card">
+      <div class="poem-name">காக்கைச் சிறகினிலே</div>
+      <div class="author">பாரதியார்</div>
+      <button class="open-poem" onclick="openView('poem1')">பாடலைக் காண -&gt;</button>
+    </article>
+    <article class="poem-card">
+      <div class="poem-name">சிறுத்தையே வெளியில் வா</div>
+      <div class="author">பாரதிதாசன்</div>
+      <button class="open-poem" onclick="openView('poem2')">பாடலைக் காண -&gt;</button>
+    </article>
+    <article class="poem-card">
+      <div class="poem-name">கத்தியின்றி ரத்தமின்றி</div>
+      <div class="author">நாமக்கல் கவிஞர்</div>
+      <button class="open-poem" onclick="openView('poem3')">பாடலைக் காண -&gt;</button>
+    </article>
+    <article class="poem-card">
+      <div class="poem-name">பட்டாம்பூச்சி விற்பவன்</div>
+      <div class="author">நா. முத்துக்குமார்</div>
+      <button class="open-poem" onclick="openView('poem4')">பாடலைக் காண -&gt;</button>
+    </article>
+    <article class="poem-card">
+      <div class="poem-name">நீ எழுத மறுக்கும் எனது அழகு</div>
+      <div class="author">இளம்பிறை</div>
+      <button class="open-poem" onclick="openView('poem5')">பாடலைக் காண -&gt;</button>
+    </article>
+    <article class="poem-card">
+      <div class="poem-name">ஆதியில் சொற்கள் இருந்தன</div>
+      <div class="author">ஆ. வெண்ணிலா</div>
+      <button class="open-poem" onclick="openView('poem6')">பாடலைக் காண -&gt;</button>
+    </article>
+  </div>
+</section>
+
+<!-- POEM 1 -->
+<section id="poem1" class="page view">
+  <div class="notes-head">
+    <button class="back-btn" onclick="openView('iyal1')">← இயல் 1</button>
+    <h1 class="notes-title">காக்கைச் சிறகினிலே</h1>
+  </div>
+  <div class="notes-wrap">
+    <div class="note-section">
+      <h2>ஆசிரியர் குறிப்பு</h2>
+      <ul>
+        <li>மகாகவி சுப்பிரமணிய பாரதியார் (1882–1921).</li>
+        <li>இயற்கை, பக்தி மற்றும் தேசிய உணர்வை ஒன்றுடன் ஒன்று இணைத்துப் பாடியவர்.</li>
+        <li>தமிழ் கவிதையில் நவீனத்தைப் புகுத்திய முன்னோடி ஆவார்.</li>
+      </ul>
+    </div>
+    <div class="note-section">
+      <h2>பாடல்</h2>
+      <div class="poem-text">காக்கை கறி சிறகினிலே நந்தலாலா -
+நின்றன் கரிய நிறம் தோன்றுதடா நந்தலாலா!
+பார்க்கும் மரங்களெல்லாம் நந்தலாலா -
+நின்றன் பச்சை நிறம் தோன்றுதடா நந்தலாலா!
+கேட்கும் ஒலியெல்லாம் நந்தலாலா -
+நின்றன் கீதம் இசைக்குதடா நந்தலாலா!
+தீக்குள் விரலை வைத்தால் நந்தலாலா
+நின்னைத் தீண்டும் இன்பம் தோன்றுதடா நந்தலாலா!
+
+— பாரதியார்</div>
+    </div>
+    <div class="note-section">
+      <h2>பாடலின் பொருள்</h2>
+      <p>உலகில் காணப்படும் எல்லாவற்றிலும் பாரதியார் இறை வடிவத்தையும் அதன் அழகையும் காண்கிறார்.</p>
+      <div class="part"><h3>கருமை நிறம்</h3><p>காக்கையின் சிறகினிலே இருக்கும் கரிய நிறத்தைப் பார்க்கும்போது, அதில் கிருஷ்ணனின் கருநிற அழகைக் கவிஞர் காண்கிறார்.</p></div>
+      <div class="part"><h3>பசுமை நிறம்</h3><p>மரங்களின் பசுமையிலும் இறைவனின் அழகையும் உயிர்த்தன்மையையும் உணர்கிறார்.</p></div>
+      <div class="part"><h3>நாத வடிவம்</h3><p>உலகில் கேட்கும் ஒவ்வொரு ஒலியும் கிருஷ்ணரின் இனிய இசையாக அவருக்குத் தோன்றுகிறது.</p></div>
+      <div class="part"><h3>பரிச உணர்வு</h3><p>சுட்டெரிக்கும் நெருப்பிற்குள் விரலை வைத்தால் கூட, அது சுடாமல் கண்ணனைத் தீண்டும் உன்னதமான இன்ப உணர்வைத் தருகிறது.</p></div>
+    </div>
+    <div class="note-section">
+      <h2>கருத்து</h2>
+      <p>இயற்கை, ஒலி, உணர்வு என அனைத்திலும் கவிஞர் இறைவனை உணர்கிறார். “இறைவன் தனியாக எங்கும் இல்லை; அவன் உலகமெங்கும் இருக்கிறார்” என்ற எண்ணத்தை அழகாகச் சொல்கிறார்.</p>
+      <p><b>குறிப்பு:</b> பாடல் இடம்பெற்ற நூல் — கண்ணன் பாட்டு.</p>
+    </div>
+  </div>
+</section>
+
+<!-- POEM 2 -->
+<section id="poem2" class="page view">
+  <div class="notes-head">
+    <button class="back-btn" onclick="openView('iyal1')">← இயல் 1</button>
+    <h1 class="notes-title">சிறுத்தையே வெளியில் வா</h1>
+  </div>
+  <div class="notes-wrap">
+    <div class="note-section">
+      <h2>ஆசிரியர் குறிப்பு</h2>
+      <ul>
+        <li>இயற்பெயர்: கனகசுப்புரத்தினம்.</li>
+        <li>மகாகவி பாரதியார் மீது கொண்ட பற்றின் காரணமாகத் தன் பெயரை “பாரதிதாசன்” என்று மாற்றிக்கொண்டார்.</li>
+        <li>சிறப்புப் பெயர்கள்: புரட்சிக்கவி, பாவேந்தர்.</li>
+        <li>காலம்: ஏப்ரல் 29, 1891 – ஏப்ரல் 21, 1964.</li>
+        <li>பிறந்த இடம்: புதுச்சேரி.</li>
+        <li>பெற்றோர்: கனகசயை முதலியார் – இலக்குமி அம்மாள்.</li>
+        <li>முக்கிய படைப்புகள்: அழகின் சிரிப்பு, இசையமுது, குடும்ப விளக்கு.</li>
+        <li>சமுதாய சீர்திருத்தவாதி, பகுத்தறிவாளர், சாதி மறுப்பாளர் மற்றும் பெண் விடுதலைக்காகப் பாடியவர்.</li>
+      </ul>
+    </div>
+    <div class="note-section">
+      <h2>உவமைக் குறிப்புகள்</h2>
+      <ul>
+        <li><b>இரும்புக் கூடு:</b> அறியாமை, மூடநம்பிக்கை, அடிமைத்தனம்.</li>
+        <li><b>சிம்புட் பறவை:</b> அபார ஆற்றல் இருந்தும் தனக்குள் உள்ள சக்தியை அறியாமல் உறங்கிக் கொண்டிருக்கும் தமிழ் சமூகத்தின் உவமை.</li>
+        <li><b>எலி மற்றும் புலி:</b> கோழைத்தனமான நிலையை “எலி” என்றும், வீரத்துடன் போராடும் நிலையை “புலி” என்றும் உவமிக்கிறார்.</li>
+      </ul>
+    </div>
+    <div class="note-section">
+      <h2>பாடல்</h2>
+      <div class="poem-text">பூட்டிய இரும்புக் கூட்டின் கதவு திறக்கப் பட்டது! சிறுத்தையே வெளியில் வா!
+எலியெனச் செயல்செய்யப் உன்னை இகழ்ந்தவர் நடுங்கப் புலியெனச் செயல்செய்யப் புறப்படு வெளியில்!
+நிம்பினை பகலினை நள்ளிருள் என்றே சிம்புட் பறவையே, சிறகை விரி, எழு!
+சிங்க இளைஞனே திருப்புமுகம்! திறவிழி! இங்குன் நாட்டுக் கிழிகழுதை ஆட்சியா?
+கைவிரித்து துவர்ந்த கயவர் நம்மிடைப் பொய்விரித்து நம் புலன்கள் மறைத்துத் தமிழுக்கு விலங்கிட்டுத் தாயகம் பற்றி நமக்குள உரிமை தமக்கென பார்னனில்,
+வழிவழி வந்தஉன் மறத்தனம் எங்கே? மொழிப்பற்று எங்கே? விழிப்பற்று எங்கே!
+இகழ்ச்சி நேர்ந்தால் இறப்போம் என்றும் புகழ்ச்சி யோம் பூணாம் என்றும்
+வையம் ஆண்ட வண்டமிழ் மரபே! கையி ருப்பைக் காட்ட எழுந்திரு!
+குறிக்கும் உன் இளைஞர் கூட்டம் எங்கே! மறிகொணாக் கடல்போல் மாப்படை திரட்டி!
+நன்மொழிக்கு விடுதலை நல்கி எழுந்திரு! பொன்மொழி முழக்குதி புதுமை ஏற்றுவாய்!
+மக்களை ஒன்றுசேர்! வாழ்வை உயர்த்துக! கைக்குள் திறமை காட்ட எழுந்திரு!
+வாழ்க இளைஞனே, வாழ்க நின்கூட்டம்! வாழ்க திராவிட நாடு!
+வாழ்க தின்வையத்து மாப்புகழ் நன்றே!
+
+— பாரதிதாசன்</div>
+    </div>
+    <div class="note-section">
+      <h2>பாடலின் பகுதி விளக்கம்</h2>
+      <div class="part"><h3>பகுதி 1: அறியாமை நீக்கி விழித்தெழுதல்</h3><p><b>வரி:</b> “பூட்டிய இரும்புக் கூட்டின் கதவு திறக்கப்பட்டது! சிறுத்தையே வெளியில் வா!”</p><p>இரும்புக் கூண்டுக்குள் அடைபட்டுக் கிடக்கும் சிறுத்தையே வெளியில் வா. உன்னை எலி என்று கேலி செய்தவர்கள் நடுங்கும் படியாகப் புலி போல வீறுகொண்டு எழுந்து வீரத்தைக் காட்டப் புறப்படு என்கிறார்.</p></div>
+      <div class="part"><h3>பகுதி 2: சிம்புட் பறவையே சிறகை விரி</h3><p>நல்ல காலம் வந்த பிறகும் அதனை நள்ளிருள் என்று நினைத்து முடங்கிக் கிடக்காமல், சிறகுகளை விரித்து உயரே பறந்து எழ வேண்டும் என்கிறார்.</p></div>
+      <div class="part"><h3>பகுதி 3: சிங்க இளைஞனின் விழிப்பு</h3><p>சிங்கத்தின் வலிமை கொண்ட தமிழ் இளைஞனே, கண்களைத் திறந்து பார்; உன் உரிமையை காக்க வீறு கொண்டு எழு என்று அழைக்கிறார்.</p></div>
+      <div class="part"><h3>பகுதி 4: மறத்தனம் எங்கே? மொழிப்பற்று எங்கே?</h3><p>தாய்மொழிக்கும் தாயகத்திற்கும் ஆபத்து நேரிடும் போது நமது பாரம்பரிய வீரமும் மொழிப்பற்றும் எங்கே போனது என்று கேள்வி எழுப்புகிறார். உரிமைகளை மீட்க விழித்தெழுவது இளைஞர்களின் கடமை.</p></div>
+      <div class="part"><h3>பகுதி 5: இகழ்ச்சி நேர்ந்தால் இறப்போம்</h3><p>தமிழுக்கும் தமிழர் பெருமைக்கும் இழிவு வந்தால் அதற்காக உயிரையும் கொடுக்கத் தயாராக இருக்க வேண்டும் என்ற வீர உணர்வை எழுப்புகிறார்.</p></div>
+      <div class="part"><h3>பகுதி 6: வாழ்க இளைஞனே</h3><p>இளைஞர்கள் ஒன்று சேர்ந்து தமிழ் மொழியைக் காத்து, சமூகத்தை உயர்த்த வேண்டும் என வாழ்த்துகிறார்.</p></div>
+    </div>
+    <div class="note-section">
+      <h2>பாடலின் சுருக்கமான விளக்கம்</h2>
+      <ul>
+        <li>அடிமைத்தனத்தை உடைத்து, எலி போல் இருந்தவன் புலி போல் வீரம் காட்ட வேண்டும்.</li>
+        <li>நல்ல காலம் வந்தும் தூங்கும் இளைஞர்கள் எழுந்து பறக்க வேண்டும்.</li>
+        <li>தமிழ் இளைஞன் கண் திறந்து உரிமை காக்க எழ வேண்டும்.</li>
+        <li>தாய்மொழிக்கு ஆபத்து வரும்போது வீரம், மொழிப்பற்று, விழிப்புணர்வு ஆகியவற்றுடன் செயல்பட வேண்டும்.</li>
+        <li>தமிழ் மொழியை காத்து, சமுதாயத்தை உயர்த்த வேண்டும்.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- POEM 3 -->
+<section id="poem3" class="page view">
+  <div class="notes-head">
+    <button class="back-btn" onclick="openView('iyal1')">← இயல் 1</button>
+    <h1 class="notes-title">கத்தியின்றி ரத்தமின்றி</h1>
+  </div>
+  <div class="notes-wrap">
+    <div class="note-section">
+      <h2>கவிஞர் குறிப்பு</h2>
+      <ul>
+        <li>இயற்பெயர்: வெ. இராமலிங்கம் பிள்ளை.</li>
+        <li>காலம்: 1888 – 1972.</li>
+        <li>பிறந்த இடம்: நாமக்கல் மாவட்டம்.</li>
+        <li>பட்டங்கள்: காந்தியக் கவிஞர், அரசவை கவிஞர்.</li>
+        <li>பத்மபூஷண் விருது பெற்றுள்ளார்.</li>
+        <li>கருத்துக்கள்: இந்திய விடுதலை, காந்திய கொள்கை, மதுவிலக்கு, கிராம முன்னேற்றம்.</li>
+        <li>பணி: கவிஞர், எழுத்தாளர், அரசியல்வாதி.</li>
+        <li>புகழ்பெற்ற நூல்கள்: தமிழன் இதயம், கவிதாஞ்சலி.</li>
+      </ul>
+    </div>
+    <div class="note-section">
+      <h2>பாடல்</h2>
+      <div class="poem-text">கத்தி யின்றி ரத்த மின்றி யுத்தம் ஒன்று வருகுது
+சத்தி யத்தின் நித்தி யத்தை நம்பும் யாரும் சேருவீர்!
+ஒன்றி அண்டிக் குண்டு வீட்டிற்(கு) உயிர்ப்ப றித்தல் இன்றியே
+மண்ட லத்தில் கண்டி லாத சண்டை போன்ற புதுமையே!
+குதிரை இல்லை யானை இல்லை கொல்லும் ஆசை இல்லையே
+எதிரியொன்று யாரும் இல்லை என்றும் ஆசை இல்லதாய்
+கோபம் இல்லை தாபம் இல்லை சாபங் கூறல் இல்லையே
+பாப மான செய்கை யொன்றும் பண்ணும் ஆசை இன்றியே
+கண்டது இல்லை கேட்டது இல்லை கண்ட இந்த மாதிரி
+பண்டு செய்த புண்ணி யந்தான் பலித்த தோநாம் பார்த்திட!
+காந்தி என்ற சாந்த மூர்த்தி தேர்ந்து காட்டும் செந்நெறி
+மாந்த ருக்குள் தீமை குன்ற வாய்ந்த தெய்வ மார்க்கமே.
+
+— நாமக்கல் கவிஞர்</div>
+    </div>
+    <div class="note-section">
+      <h2>முன்னுரை</h2>
+      <p>அகிம்சை வழியிலான விடுதலைப் போராட்டத்தை வலியுறுத்தும் பாடல்களில் தலைசிறந்தது “கத்தியின்றி ரத்தமின்றி”. ஆயுதங்கள், வன்முறை, குண்டுகள் இல்லாமல் மகாத்மா காந்தி காட்டிய சத்தியத்தின் வழியில் போராட வருமாறு இப்பாடல் மக்களை அழைக்கிறது.</p>
+    </div>
+    <div class="note-section">
+      <h2>பாடலின் விளக்கம்</h2>
+      <div class="part"><h3>கத்தியின்றி ரத்தமின்றி யுத்தம் ஒன்று வருகுது</h3><p>கத்தியோ இரத்தச் சிந்தலோ இல்லாத ஒரு புதிய தர்ம யுத்தம் தொடங்கிவிட்டது. சத்தியத்தின் மீது நம்பிக்கை உள்ளவர்கள் அனைவரும் இந்த அறப்போராட்டத்தில் இணைய வேண்டும் என கவிஞர் அழைக்கிறார்.</p></div>
+      <div class="part"><h3>குண்டு போட்டு உயிர்ப்பறித்தல் இன்றியே</h3><p>குண்டுகள் இல்லாமல், உயிர்களைப் பறிக்காமல், உலகம் இதுவரை காணாத புதுமையான போராட்டத்தை நடத்தப் போகிறோம் என்ற கருத்து வெளிப்படுகிறது.</p></div>
+      <div class="part"><h3>குதிரை இல்லை யானை இல்லை</h3><p>இந்த யுத்தத்தில் படைகள் தேவையில்லை. கொல்லும் ஆசையும் இல்லை; நமக்கு எதிரி என்று யாரும் இல்லை என்ற அகிம்சைக் கருத்து கூறப்படுகிறது.</p></div>
+      <div class="part"><h3>கோபம் இல்லை தாபம் இல்லை</h3><p>கோபம், ஆசை, பழிவாங்குதல், பாவமான செயல்கள் எதுவும் இல்லாமல் தூய்மையான மனதுடன் போராட வேண்டும்.</p></div>
+    </div>
+    <div class="note-section">
+      <h2>பாடலின் பொருள்</h2>
+      <ul>
+        <li><b>புதிய தர்ம யுத்தம்:</b> இரத்தம் சிந்தாமல் நடக்கும்.</li>
+        <li><b>அழைப்பு:</b> உண்மையை நம்பும் அனைவரும் அறப்போராட்டத்தில் இணைய வேண்டும்.</li>
+        <li><b>முக்கிய கருத்து:</b> வன்முறையை விட அகிம்சையே பெரிய வலிமை.</li>
+      </ul>
+    </div>
+    <div class="note-section">
+      <h2>இலக்கியச் சிறப்புகள்</h2>
+      <ul>
+        <li><b>எளிய மொழி:</b> கவிஞர் எளிமையான மொழியில் கருத்தை வெளிப்படுத்துகிறார்.</li>
+        <li><b>புதுமை:</b> “சண்டை” என்ற சொல்லுக்கு புதிய கருத்தை முன்வைக்கிறது.</li>
+      </ul>
+      <h2 style="margin-top:20px">முடிவுரை</h2>
+      <p>இந்தப் பாடல் வெறும் கவிதை அல்ல; வன்முறைக்கு மாற்றாக அன்பையும் சத்தியத்தையும் முன்வைக்கும் வழிகாட்டியாக விளங்குகிறது.</p>
+    </div>
+  </div>
+</section>
+
+<!-- POEM 4 -->
+<section id="poem4" class="page view">
+  <div class="notes-head">
+    <button class="back-btn" onclick="openView('iyal1')">← இயல் 1</button>
+    <h1 class="notes-title">பட்டாம்பூச்சி விற்பவன்</h1>
+  </div>
+  <div class="notes-wrap">
+    <div class="note-section">
+      <h2>ஆசிரியர் குறிப்பு</h2>
+      <ul>
+        <li>இயற்பெயர்: நா. முத்துக்குமார்.</li>
+        <li>ஊர்: காஞ்சிபுரம் மாவட்டம், கன்னிகாபுரம்.</li>
+        <li>நான்கு வயதில் தாயை இழந்தார்; சிறுவயதில் புத்தக வாசிப்பில் ஆர்வம் கொண்டவர்.</li>
+        <li>ஆண்டர்சன் மேல்நிலைப் பள்ளி – 12ஆம் வகுப்பு.</li>
+        <li>பச்சையப்பன் ஆண்கள் கல்லூரி – இயற்பியல் இளநிலை.</li>
+        <li>சென்னை பச்சையப்பன் கல்லூரி – தமிழ் இலக்கியம் முதுநிலை.</li>
+        <li>முனைவர் பட்ட ஆய்வு – “தமிழ்த் திரைப்படப் பாடல்கள் 1990–2000”.</li>
+        <li>முன்னணி பாடலாசிரியராகப் பணியாற்றியவர்; 1500-க்கும் மேற்பட்ட பாடல்கள் எழுதியவர்.</li>
+        <li>14.08.2016 அன்று 41 வயதில் காலமானார்.</li>
+        <li>படைப்புகள்: பட்டாம்பூச்சி விற்பவன், அணிலாடும் முன்றில், கண் பேசும் வார்த்தைகள், பால் கண்ணாடி, கிராமம் நகரம் மாநகரம், ஆனா ஆவன்னா, என்னைச் சந்திக்க கனவில் வராதே.</li>
+      </ul>
+    </div>
+    <div class="note-section">
+      <h2>பாடல்</h2>
+      <div class="poem-text">பதின்மூன்று வயதிருக்கும் பாலத்தின் அருகே பார்த்தேன் அவனை.
+நேற்றுப் பூக்கடை, போனவாரம் பூஜார் வீதி, என இடம் மாறுதலே குறிக்கோளாய் இருக்கிறது அவன் வாழ்வு.
+குடையை மல்லாத்தி அதில் பரப்பி இருந்தான் சர்க்கை எடுப்பவர் கையில் வண்ணம் தொலைக்காமலும் சிறகின் இயல்பை மறந்தநிலையிலும் இருந்தன பட்டாம்பூச்சிகள்.
+அடிவயிற்றில் மெழுகு பூசி கூவி விற்றும் விடுகிறான் அவ்வப்போது ஒன்றிரண்டை சின்னயதில் பிடிக்கத் தப்பியதை இப்போது பிடித்ததாய் எல்லோருக்கும் கர்வம்.
+அவமாரியோ சாவேரோ இனி ஆவலோடு வந்து ஏமாறப் போகின்றன வீட்டுப் பல்லிகள்.</div>
+    </div>
+    <div class="note-section">
+      <h2>பகுதி வாரியான விளக்கம்</h2>
+      <div class="part"><h3>பகுதி 1: பதின்மூன்று வயதிருக்கும் பாலத்தின் அருகே</h3><p>பள்ளிக்குச் செல்ல வேண்டிய வயதில், சிறுவன் பாலத்தின் அருகே பட்டாம்பூச்சிகளை விற்று வாழ்வாதாரம் தேடுகிறான். நேற்று பூக்கடை, போன வாரம் பூசாரி வீதி என இடம் மாறி விற்பனை செய்வதே அவன் வாழ்வாக உள்ளது. இதன் மூலம் அவனது நிலையற்ற, வறுமையான வாழ்க்கை வெளிப்படுகிறது.</p></div>
+      <div class="part"><h3>பகுதி 2: குடையை மல்லாத்தி – சர்க்கை</h3><p>குடையை தலைகீழாக வைத்து அதில் பட்டாம்பூச்சிகளைப் பரப்பி விற்றுக் கொண்டிருக்கிறான். எங்கு இடம் கிடைக்கிறதோ அங்கு தனது பொருட்களை வைத்து விற்கும் நிலையற்ற வாழ்க்கை சித்தரிக்கப்படுகிறது.</p></div>
+      <div class="part"><h3>பகுதி 3: எடுப்பவர் கையில் – கர்வம்</h3><p>உயிருள்ள பட்டாம்பூச்சிகள் பிடிப்பவர்களின் கையில் வண்ணங்களை நிரப்பும். ஆனால் சிறுவன் விற்கும் பட்டாம்பூச்சிகள் செயற்கையானவை. அதன் அடிவயிற்றில் மெழுகு பூசி பறப்பது போல் காட்சி தருகிறது. சிறுவயதில் பிடிக்க முடியாததை இப்போது பிடித்ததாக அவன் கர்வம் கொள்கிறான்.</p></div>
+      <div class="part"><h3>பகுதி 4: வீட்டுப் பல்லிகள்</h3><p>விளையாட்டுப் பருவத்தில் பட்டாம்பூச்சிகளைப் பிடிக்க முடியாமல் போன சிறுவன், இன்று பிழைப்புக்காக உயிரற்ற பட்டாம்பூச்சிகளை விற்பனைப் பொருளாக்குகிறான். உயிரற்ற பட்டாம்பூச்சிகளை உணவாக எண்ணி வரும் பல்லிகளும் ஏமாறுகின்றன.</p></div>
+    </div>
+    <div class="note-section">
+      <h2>பாடலின் பொது விளக்கம்</h2>
+      <ul>
+        <li>இயற்கையின் அற்புதமான பட்டாம்பூச்சி விற்பனைப் பொருளாக மாறுகிறது.</li>
+        <li>வறுமை காரணமாக சிறுவன் கல்விக்குப் பதிலாக வாழ்வாதாரம் தேடுகிறான்.</li>
+        <li>செயற்கை பொருள் இயற்கையின் அழகை மாற்றுகிறது.</li>
+        <li>உழைக்கும் மக்களின் வாழ்க்கை நிலையை எளிய மொழியில் படம்பிடித்துக் காட்டுவது இக்கவிதையின் சிறப்பு.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- POEM 5 -->
+<section id="poem5" class="page view">
+  <div class="notes-head">
+    <button class="back-btn" onclick="openView('iyal1')">← இயல் 1</button>
+    <h1 class="notes-title">நீ எழுத மறுக்கும் எனது அழகு</h1>
+  </div>
+  <div class="notes-wrap">
+    <div class="note-section">
+      <h2>ஆசிரியர் குறிப்பு</h2>
+      <ul>
+        <li>இயற்பெயர்: பஞ்சவர்ணம்.</li>
+        <li>இராமநாதபுரம் மாவட்டம் திருவாடானை அருகிலுள்ள சாப்டியக்குடி கிராமத்தில் பிறந்தவர்.</li>
+        <li>சென்னையிலுள்ள அரசு மேல்நிலைப்பள்ளியின் தலைமையாசிரியராகப் பணியாற்றியவர்.</li>
+        <li>திருப்பூர் தமிழ்ச்சங்கம், சிற்பி அறக்கட்டளை, பாவலர், கவிதைச் சுடர் தின விருது உள்ளிட்ட பல விருதுகள் பெற்றவர்.</li>
+        <li>இந்தியாவின் முன்னாள் குடியரசுத் தலைவர் ஏ.பி.ஜே. அப்துல் கலாமிடம் கவிதைப் போட்டியில் முதற்பரிசு பெற்றவர்.</li>
+        <li>நூல்கள்: முதல்மழை, நிசப்தம், இளவேனில் பாடல்கள்.</li>
+      </ul>
+    </div>
+    <div class="note-section">
+      <h2>பாடல்</h2>
+      <div class="poem-text">தாலாட்டுப்பாடாம
+தனித்தமுகலிவிட்டன
+காட்டு வேலைக்கென்னை
+கதறவிட்டுப் போனவளே...
+
+வயது பத்தாது முன்னே
+வயலுக்கிழுத்தவளே.
+பள்ளிக்கூடம் போனாக்கா
+பணமாகுடுக்கிறாங்க
+இடுப்புத்துணிசரியில்லாம
+படிப்பென்னடி உனக்கு
+வாடி வயலுக்கென
+வம்பு செஞ்சவள் தாயே....
+
+மணிகணக்காய் படிச்சாக்கா
+மண்ணெண்ணெய்க்கு எங்கே போவேன்?
+பரிட்சை பரிட்சேனு
+எம்பாடத்தை கெடுத்துறியே-என
+விளக்கை அணைக்கச் சொல்லி
+வேதனைப்பட்ட தாயே.
+
+பரீட்சைக்குக் கட்டவேணும்
+பணங்குடும்மா இனுக்கேட்டா
+படிக்கவச்சி எம்பேர்பட்ட
+பாழ்த்தநான்செஞ்சுபுட்டேன்ன
+அழுதழுது ஒரு அஞ்சுரூபாதந்தவளே...
+
+காலுக்குச் செருப்பில்லாம நான்
+கஷ்டப்பட்டு நடக்குறேன்னு
+மொட்டக்காலோட நீ முள்ளு
+வெட்டிவித்துப்புட்டு மூட்டவிலையில்
+ஜோடி செருப்பு வாங்கித் தந்தவளே...
+
+வீடு ஒழுகு அப்ப
+வேதனைய மறந்து நீயும் கோடமழைதானே..
+குளிர்ச்சிதான் பெய்யட்டும் பேருனு
+ஐப்பசி மாசத்து அடமழை சொன்னவளே...
+
+ஏரோபிளேனா மேலட்டிப் பறக்குமாமே
+நேராக்குதிக்கணுமா
+நீ என்னுங்கிட்டே போனுமா என
+தொண்ணுத்தி மூணுலேயேது எனிச்சொல்லி கேட்டவளே
+
+என் படிப்பை.. எந்தாயே
+உன்பள்ளிக்கூடத்துமக
+பாட்டுக்கட்டிப்பாடுறேம்மா-நான்
+எங்கதிருஞ்சாலும் என் இதயத்துல
+வாழ்கிற உனக்குத்தான் மொதப்பாட்டு-என்
+உயிர்பாடும் தாலாட்டு.</div>
+    </div>
+    <div class="note-section">
+      <h2>பகுதி வாரியான விளக்கம்</h2>
+      <div class="part"><h3>பகுதி 1: தாலாட்டுப் பாடாமல்</h3><p>தன் தாயானவள் தன்னுடைய இளமைக்கும் அமைதிக்கும் விடைகூறி தன் மகளுக்காக காட்டு வேலைக்குச் சென்று உழைத்தவள். தாயின் ஏழ்மை மற்றும் தியாகம் இங்கு வெளிப்படுகிறது.</p></div>
+      <div class="part"><h3>பகுதி 2: வயது பத்தாது முன்னே</h3><p>பத்து வயது நிறைவு முன்பே பள்ளிக்குச் செல்ல முடியாத வறுமைச் சூழல் ஏற்பட்டதால் மகளை வயலுக்கு அழைத்துச் செல்லும் நிலையை இப்பகுதி காட்டுகிறது.</p></div>
+      <div class="part"><h3>பகுதி 3: மணிக்கணக்காய் படிச்சாக்கா</h3><p>மகள் இரவில் படிப்பதைக் கண்டு மண்ணெண்ணெய் செலவை எண்ணி வருந்திய தாயின் வறுமை நிலையை இவ்வரிகள் காட்டுகின்றன.</p></div>
+      <div class="part"><h3>பகுதி 4: பரீட்சைக்குக் கட்டவேணும்</h3><p>தேர்வுக் கட்டணம் கேட்டபோது தன்னைப் படிக்க வைத்து பெரிய தவறு செய்துவிட்டதாக அழுதாலும், இறுதியில் இருந்த ஐந்து ரூபாயை மகளுக்குக் கொடுத்த தாயின் பாசம் வெளிப்படுகிறது.</p></div>
+      <div class="part"><h3>பகுதி 5: செருப்பு வாங்கித் தந்தவளே</h3><p>மகள் செருப்பில்லாமல் கஷ்டப்படுவதைக் கண்டு தாய் முள் வெட்டி விற்று அந்தக் காசில் செருப்பு வாங்கித் தருகிறாள்.</p></div>
+      <div class="part"><h3>பகுதி 6: வீடு ஒழுகும் போது</h3><p>வீடு ஒழுகினாலும் தன் வேதனையை மறைத்து, “குளிர்ச்சிக்காக மழை பெய்கிறது” என்று மகளைத் தேற்றும் தாயின் மன உறுதி வெளிப்படுகிறது.</p></div>
+      <div class="part"><h3>பகுதி 7: ஏரோபிளேன் கனவு</h3><p>வாழ்க்கையில் தானும் பயணம் செய்ய வேண்டும் என்ற தாயின் எளிய ஆசைகளும் கனவுகளும் இப்பகுதியில் வெளிப்படுகின்றன.</p></div>
+      <div class="part"><h3>பகுதி 8: உயிர்பாடும் தாலாட்டு</h3><p>காலம் கடந்தாலும் தாய் மகளின் இதயத்தில் வாழ்கிறாள். தாய்க்கே தனது முதல் பாடலும் உயிர்த் தாலாட்டுமாக இருப்பதாகக் கவிஞர் கூறுகிறார்.</p></div>
+    </div>
+    <div class="note-section">
+      <h2>பாடலின் பொது விளக்கம்</h2>
+      <p>தாயின் தியாகம், வறுமையிலும் குழந்தையின் கல்விக்காகப் போராடும் மன உறுதி, தன் குழந்தை படிக்க வேண்டும் என்ற உயர்ந்த உள்ளம் ஆகியவற்றை இப்பாடல் வெளிப்படுத்துகிறது.</p>
+    </div>
+  </div>
+</section>
+
+<!-- POEM 6 -->
+<section id="poem6" class="page view">
+  <div class="notes-head">
+    <button class="back-btn" onclick="openView('iyal1')">← இயல் 1</button>
+    <h1 class="notes-title">ஆதியில் சொற்கள் இருந்தன</h1>
+  </div>
+  <div class="notes-wrap">
+    <div class="note-section">
+      <h2>ஆசிரியர் குறிப்பு</h2>
+      <ul>
+        <li>ஆ. வெண்ணிலா 1971 ஆம் ஆண்டு திருவண்ணாமலை மாவட்டம் வந்தவாசியில் பிறந்தார்.</li>
+        <li>ஊராட்சி ஒன்றிய நடுநிலைப்பள்ளியிலும் அரசு பெண்கள் மேல்நிலைப்பள்ளியிலும் பணியாற்றியவர்.</li>
+        <li>கணிதம், உளவியல் மற்றும் கல்வியியல் துறைகளில் உயர்கல்வி பெற்றவர்.</li>
+        <li>சிறுவயதிலிருந்தே புத்தக வாசிப்பில் ஆர்வம் கொண்டவர்; பெரியாரின் நூல்களையும் வாசித்தவர்.</li>
+        <li>இலக்கிய நண்பர்களுடன் இணைந்து சிற்றிதழ் பணிகளில் ஈடுபட்டவர்.</li>
+        <li>பெண்களின் அக உலகம், பெண்குழந்தை வளர்ப்பு சிக்கல்கள் மற்றும் பெண்கள் எதிர்கொள்ளும் புறக்கணிப்புகளைத் தமது படைப்புகளில் முன்வைக்கிறார்.</li>
+      </ul>
+    </div>
+    <div class="note-section">
+      <h2>பாடல்</h2>
+      <div class="poem-text">1. குழந்தை உறங்கிவிட்டதை உறுதிப்படுத்திக்கொண்டு நின்றுபோகும் தொட்டில்.
+ஆடிக்கொண்டிருக்கிறதா தொட்டில் என உறுதி செய்து கொள்ளவே இல்லை குழந்தையின் உறக்கம்.
+
+2. துண்டு ஒன்றைக் கட்டிக்கொண்டு அம்மா வாழுமடி கிறதுகுழந்தை கால்.
+குழந்தையாக முடியாமல் அல்லற்பட்டுக் கொண்டிருப்பது அம்மாக்கள்தான்.
+
+3. எதிர்ப்படும் நண்பரின் முகம் பார்த்துப் புன்னகைக்கும் அளவிற்கேனும் சந்தோஷமளி நிலை வாய்த்ததால் போதுமென்றிருக்கிறது வாழ்க்கை.
+
+4. ஆளில்லா அறைகளில் ஒலித்து அடங்கும் தொலைபேசி அழைப்புகள் சொல்லாமல் சொல்லும் செய்திகளை அறிய இயலாத கதவுகள் அவையும் — சுவர்களின் கனமான பெருமூச்சுகள்.
+
+5. பல்லு தேச்சியா, பால் குடிச்சிட்டியா, ஹோம் ஒர்க் எழுதிட்டியா, யூனிபார்ம் போட்டாச்சா, ரிக்ஷா வந்திடுச்சா, பென்சில் எடுத்துக்கிட்டியா, விளையாடாமட்டா தானே, அடிக்காம வந்தியா, யாரையும் கைகால் கழுவிக்கிட்டியா, சாப்பிட்டியா, தூங்கப் போறோமா — கேள்விகளால் சுழற்றி வீசப்படுகின்றன குழந்தைகளின் உலகம்.
+
+6. சத்தம் போடாமல் விளையாடுங்கள்; கூச்சலே இல்லாமல் சொல்கிறார்கள் குழந்தைகளிடம்.
+
+7. காக்காச் சதை, குட்டி இளவரசி கதை, தேவதைக் கதை என சொல்லி மகிழ்ந்த பேச்சுகளைப் பரிமாறிய இரவொன்றில் நம்மால் குழந்தைகளைப் போலக் கட்டியணைத்து உறங்க முடிந்தது.
+
+8. ஜன்னலோர இருக்கைக்கு அடித்ததே என்றாலும் அந்நியப்பட்டுப் போகிறது வானம்.
+
+9. தெரிவு நீங்கி, ஆடை குறைந்து, அழுக்குத் தாங்கி, கவிதை தர்வம் குறைந்து பேருந்து நிலைய பைத்தியக்காரி போன்ற நினைவு வந்து விடுகிறது அன்பின் நிறைவு தூய்ம்பும் விநாடிகளை யாசித்து நிற்கையில்.
+
+10. சில நூறு விநாடிகளைப் பார்த்திருக்கின்ற பூக்கள்.
+சில நூறு மாதங்களைக் கடந்திருக்கின்றன செடிகள்.
+சில நூறு ஆண்டுகளைச் சுவாசித்திருக்கின்றன மரங்கள்.
+பல நூறு தலைமுறைகளை வாசித்துக் கொண்டிருக்கும் மலைகள்.
+பூ, செடி, மரம், மலை அத்தனையும் புரட்டிப் பார்த்து விடும் என்னுற்றைக் கவிதை — குழந்தையின் உறக்கம்.</div>
+    </div>
+    <div class="note-section">
+      <h2>பகுதி வாரியான விளக்கம்</h2>
+      <div class="part"><h3>பகுதி 1: குழந்தை உறங்கிவிட்டதை – தொட்டில்</h3><p>குழந்தை உறங்கிவிட்டதை உறுதிப்படுத்திய பின் தொட்டிலும் அமைதியாகிறது. குழந்தையின் உறக்கம் தாயின் கவனிப்பு, அன்பு மற்றும் குழந்தையின் தனி உலகத்தை வெளிப்படுத்துகிறது.</p></div>
+      <div class="part"><h3>பகுதி 2: அம்மாக்கள் குழந்தையாக முடியாமல்</h3><p>குழந்தைக்காகத் தங்களை மாற்றிக் கொண்டு வாழும் தாய்மார்களின் தியாகத்தை இப்பகுதி சுட்டுகிறது.</p></div>
+      <div class="part"><h3>பகுதி 3: நகரச் சூழல்</h3><p>நகர வாழ்க்கையில் மனிதர்களின் முகங்களைக் கூட மறந்து விடும் சூழலில், நண்பரின் முகம் பார்த்துப் புன்னகைப்பதே அரிய மகிழ்ச்சியாகிறது.</p></div>
+      <div class="part"><h3>பகுதி 4: தனிமை</h3><p>ஆளில்லா அறைகளில் ஒலித்து அடங்கும் தொலைபேசி அழைப்புகள் தனிமையையும், சொல்லப்படாத செய்திகளையும் சுவர்களின் கனமான பெருமூச்சுகளாக உணர்த்துகின்றன.</p></div>
+      <div class="part"><h3>பகுதி 5: கேள்விகளால் சுழற்றப்படும் குழந்தைகள்</h3><p>குழந்தைகளை இயந்திர பொம்மைகள் போல பல கேள்விகளால் இயக்கும் பெரியவர்களின் அணுகுமுறையை இப்பகுதி சுட்டிக்காட்டுகிறது.</p></div>
+      <div class="part"><h3>பகுதி 6: சத்தமில்லாத விளையாட்டு</h3><p>குழந்தைகளிடம் கூட அமைதியாக விளையாடச் சொல்லும் பெரியவர்களின் கட்டுப்பாடுகள் குழந்தைகளின் இயல்பான குதூகலத்தைச் சுருக்குகின்றன.</p></div>
+      <div class="part"><h3>பகுதி 7: கதைகள் கூறும் இரவு</h3><p>குழந்தைகளுக்குக் கதைகள் சொல்லும் இரவில் பெற்றோரும் குழந்தைகளாக மாறி, அவர்களுடன் அன்போடு கட்டியணைத்து உறங்க முடிகிறது.</p></div>
+      <div class="part"><h3>பகுதி 8: ஜன்னலோர வானம்</h3><p>பயணத்தின் போது ஜன்னலோர இருக்கை இருந்தாலும், இயற்கையை ரசிக்கும் மனநிலை குறைந்து வானமே அந்நியமாகிப் போகும் நிலை சித்தரிக்கப்படுகிறது.</p></div>
+      <div class="part"><h3>பகுதி 9: அன்பின் ஏக்கம்</h3><p>மனிதர்கள் அன்பின் நிறைவுக்காக ஏங்கும் தருணங்களில் தன்னை மறந்த நிலையை கவிஞர் வெளிப்படுத்துகிறார்.</p></div>
+      <div class="part"><h3>பகுதி 10: இயற்கையும் கவிதையும்</h3><p>பூக்கள் விநாடிகளையும், செடிகள் மாதங்களையும், மரங்கள் ஆண்டுகளையும், மலைகள் பல தலைமுறைகளையும் கடந்து வாழ்கின்றன. ஆனால் கவிதை பூ, செடி, மரம், மலை என அனைத்தையும் ஒரே படைப்புக்குள் அடக்கும் வல்லமை கொண்டது.</p></div>
+    </div>
+    <div class="note-section">
+      <h2>பாடலின் பொது விளக்கம்</h2>
+      <p>குழந்தைகளின் உலகம் வேறு; பெரியவர்களின் உலகம் வேறு. பெரியவர்கள் குழந்தைகளை குழந்தைகளாகப் பார்ப்பதில்லை; குழந்தைகள் பெரியவர்களை குழந்தைகளாகப் பார்த்து ஏங்குகின்றனர். தொட்டில், தாய், நண்பர், தனிமை, கேள்விகள், விளையாட்டு, கதைகள், ஜன்னலோர வானம், அன்பின் ஏக்கம், இயற்கை போன்ற பல பரிமாணங்களில் குழந்தைகளின் உலகத்தை கவிஞர் வெளிப்படுத்துகிறார்.</p>
+    </div>
+  </div>
+</section>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const views = document.querySelectorAll('.view');
+function openView(id){
+  views.forEach(v=>v.classList.remove('active'));
+  const target=document.getElementById(id);
+  if(target){
+    target.classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+}
+function comingSoon(name){
+  const toast=document.getElementById('toast');
+  toast.textContent=name+' — விரைவில் சேர்க்கப்படும்';
+  toast.classList.add('show');
+  clearTimeout(window.toastTimer);
+  window.toastTimer=setTimeout(()=>toast.classList.remove('show'),2200);
+}
+function toggleTheme(){
+  document.body.classList.toggle('dark');
+  const dark=document.body.classList.contains('dark');
+  localStorage.setItem('tamilTheme',dark?'dark':'light');
+  document.getElementById('themeBtn').textContent=dark?'LIGHT':'DARK';
+}
+(function(){
+  const saved=localStorage.getItem('tamilTheme');
+  if(saved==='dark'){
+    document.body.classList.add('dark');
+    document.getElementById('themeBtn').textContent='LIGHT';
+  }
+})();
+</script>
+</body>
+</html>
