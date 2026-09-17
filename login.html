@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head><body style="font-family:Arial;max-width:400px;margin:40px auto;padding:20px;border:1px solid #ddd;border-radius:10px">
+<h2>Data Science Notes - Login</h2>
+<input id="email" type="email" placeholder="Email" style="width:100%;padding:12px;margin:8px 0">
+<input id="password" type="password" placeholder="Password" style="width:100%;padding:12px;margin:8px 0">
+<button onclick="signup()" style="width:100%;padding:12px;background:black;color:white">Create Account</button>
+<button onclick="login()" style="width:100%;padding:12px;background:green;color:white;margin-top:10px">Login</button>
+<p id="msg" style="color:red"></p>
+<script>
+const supabase = window.supabase.createClient('https://ztocwdfliodtjvmddqvb.supabase.co', 'sb_publishable_YhnQ6f1iSiaXt92GamwJPA_YWBIal-t');
+async function signup(){ const e=document.getElementById('email').value; const p=document.getElementById('password').value; const {error}=await supabase.auth.signUp({email:e,password:p}); document.getElementById('msg').innerText=error?error.message:'Account created! Now click Login'; }
+async function login(){ const e=document.getElementById('email').value; const p=document.getElementById('password').value; const {error}=await supabase.auth.signInWithPassword({email:e,password:p}); if(error){document.getElementById('msg').innerText=error.message;return;} const {data}=await supabase.from('payments').select('*').eq('email',e).eq('status','approved').maybeSingle(); if(data) location.href='index.html'; else location.href='payment.html'; }
+</script></body></html>
